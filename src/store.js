@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import * as THREE from 'three'
 
 let timeoutId
 
@@ -31,18 +32,42 @@ export const useStore = create((set) => {
     cameraTarget: [0, 1, -2],
     cameraPosition: [0, 2, 7],
     
+    // Store camera controls ref to read current position before zooming
+    controls: null,
+    setControls: (controls) => set({ controls }),
+    
+    previousCameraPosition: null,
+    previousCameraTarget: null,
+    
     // Transition to a specific zone
-    setZone: (zone, target, position) => set({
-      currentZone: zone,
-      cameraTarget: target,
-      cameraPosition: position
+    setZone: (zone, target, position) => set((state) => {
+      let prevPos = state.previousCameraPosition
+      let prevTarget = state.previousCameraTarget
+      
+      // If we are currently in overview, save the exact current camera position/target
+      if (state.currentZone === 'overview' && state.controls) {
+        const p = new THREE.Vector3()
+        const t = new THREE.Vector3()
+        state.controls.getPosition(p)
+        state.controls.getTarget(t)
+        prevPos = [p.x, p.y, p.z]
+        prevTarget = [t.x, t.y, t.z]
+      }
+      
+      return {
+        currentZone: zone,
+        cameraTarget: target,
+        cameraPosition: position,
+        previousCameraPosition: prevPos,
+        previousCameraTarget: prevTarget
+      }
     }),
     
-    // Reset back to doorway overview
-    resetZone: () => set({
+    // Reset back to previous overview location
+    resetZone: () => set((state) => ({
       currentZone: 'overview',
-      cameraTarget: [0, 1, -2],
-      cameraPosition: [0, 2, 7]
-    })
+      cameraTarget: state.previousCameraTarget || [0, 1, -2],
+      cameraPosition: state.previousCameraPosition || [0, 2, 7]
+    }))
   }
 })

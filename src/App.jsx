@@ -9,11 +9,13 @@ import './index.css'
 
 function CameraRig() {
   const controlsRef = useRef()
+  const setControls = useStore((state) => state.setControls)
   const cameraTarget = useStore((state) => state.cameraTarget)
   const cameraPosition = useStore((state) => state.cameraPosition)
 
   useEffect(() => {
     if (controlsRef.current) {
+      setControls(controlsRef.current)
       controlsRef.current.setLookAt(
         cameraPosition[0], cameraPosition[1], cameraPosition[2],
         cameraTarget[0], cameraTarget[1], cameraTarget[2],
@@ -46,6 +48,8 @@ function CameraRig() {
 
 export default function App() {
   const isIdle = useStore((state) => state.isIdle)
+  const currentZone = useStore((state) => state.currentZone)
+  const resetZone = useStore((state) => state.resetZone)
 
   return (
     <>
@@ -74,10 +78,52 @@ export default function App() {
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: '14px',
         fontWeight: '500',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+        zIndex: 10
       }}>
         ✨ Tip: Try looking around the room, hovering, or clicking on highlighted objects!
       </div>
+
+      {/* Back to Room Button */}
+      {currentZone !== 'overview' && (
+        <button 
+          onClick={resetZone}
+          style={{
+            position: 'absolute',
+            bottom: 32,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '12px 32px',
+            background: 'rgba(20, 20, 25, 0.6)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '24px',
+            color: '#fff',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            fontSize: '16px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)'
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = 'rgba(20, 20, 25, 0.6)'
+            e.currentTarget.style.transform = 'translateX(-50%) scale(1)'
+          }}
+        >
+          <span style={{ fontSize: '1.2em', lineHeight: 1, paddingBottom: '2px' }}>←</span>
+          <span>Back to Room</span>
+        </button>
+      )}
     </>
   )
 }
